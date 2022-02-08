@@ -1,0 +1,26 @@
+version 0.4.1
+- small bugs fixed
+- version submitted to CRAN
+
+version 0.4.0
+- new STCAR_INLA() function to fit scalable spatio-temporal CAR models
+
+version 0.3.2
+- 'X' and 'confounding' arguments included to CAR_INLA function
+- new function included: clustering_partition
+
+version 0.3.1
+- 'W' argument included to CAR_INLA function
+
+version 0.3.0
+- parallel and distributed computation strategies when fitting inla models with the CAR_INLA function
+
+version 0.2.2
+- new arguments included to random_partition function
+
+version 0.2.1
+- Carto_SpainMUN data changed
+
+version 0.2.0
+- speedup improvements in mergeINLA function
+- small bugs fixed

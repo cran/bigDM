@@ -1,0 +1,47 @@
+citEntry(entry = "Manual",
+  title        = "bigDM: Scalable Bayesian Disease Mapping Models for High-Dimensional Data",
+  author       = personList(as.person("A Adin"),
+                   as.person("E Orozco-Acosta"),
+                   as.person("M D Ugarte")),
+  year         = "2022",
+  note = "R package version 0.4.1",
+  url = "https://github.com/spatialstatisticsupna/bigDM",
+  textVersion  =
+  paste("Adin, A., Orozco-Acosta, E., Ugarte, M.D. (2021).",
+        "bigDM: Scalable Bayesian Disease Mapping Models for High-Dimensional Data. R package version 0.4.1",
+        "https://github.com/spatialstatisticsupna/bigDM."),
+  header = "To cite the package:"
+)
+
+
+citEntry(entry = "article",
+  title        = "Scalable Bayesian modeling for smoothing disease mapping risks in large spatial data sets using INLA",
+  author       = personList(as.person("E Orozco-Acosta"),
+                   as.person("A Adin"),
+                   as.person("M D Ugarte")),
+  year         = "2021",
+  journal      = "Spatial Statistics",
+  volume       = "41",
+  pages        = "100496",
+  doi          = "10.1016/j.spasta.2021.100496",
+  textVersion  =
+  paste("Orozco-Acosta, E., Adin, A., and Ugarte, M.D. (2021).",
+        "Scalable Bayesian modeling for smoothing disease mapping risks in large spatial data sets using INLA. Spatial Statistics, 41, 100496. https://doi.org/10.1016/j.spasta.2021.100496"),
+  header = "To cite the scalable Bayesian models implemented in the function CAR_INLA:"
+)
+
+
+citEntry(entry = "Misc",
+  title        = "Parallel and distributed Bayesian modelling for analysing high-dimensional spatio-temporal count data",
+  author       = personList(as.person("E Orozco-Acosta"),
+                   as.person("A Adin"),
+                   as.person("M D Ugarte")),
+  year         = "2022",
+  eprint       = "2201.08323",
+  archivePrefix = "arXiv",
+  url          = "https://arxiv.org/abs/2201.08323",
+  textVersion  =
+  paste("Orozco-Acosta, E., Adin, A., and Ugarte, M.D. (2022).",
+        "Parallel and distributed Bayesian modelling for analysing high-dimensional spatio-temporal count data. arXiv preprint. https://arxiv.org/abs/2201.08323"),
+  header = "To cite the scalable Bayesian models implemented in the function STCAR_INLA:"
+)
