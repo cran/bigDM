@@ -1,7 +1,9 @@
 # bigDM
 
 <!-- badges: start -->
+[![CRAN version](https://www.r-pkg.org/badges/version-last-release/bigDM)](https://CRAN.R-project.org/package=bigDM) 
 [![R-CMD-check](https://github.com/spatialstatisticsupna/bigDM/workflows/R-CMD-check/badge.svg)](https://github.com/spatialstatisticsupna/bigDM/actions)
+[![Total downloads](https://cranlogs.r-pkg.org/badges/grand-total/bigDM)](https://CRAN.R-project.org/package=bigDM)
 <!-- badges: end -->
 
 
@@ -39,9 +41,11 @@ R version 4.0.0 and newer for Windows requires the new Rtools40 to build R packa
 
 
 ## Install from CRAN
-Not in CRAN
+```
+install.packages("bigDM")
+```
 
-## Install from GitHub
+## Install from GitHub (development version)
 ```
 # Install devtools package from CRAN repository
 install.packages("devtools")
@@ -58,7 +62,7 @@ install.packages(c("cpp11","proxy","progress","tzdb","vroom"))
 # Install bigDM from GitHub repositoy
 install_github("spatialstatisticsupna/bigDM")
 ```
-**IMPORTANT NOTE: The latest stable version of INLA (22.11.22) must be installed for the correct use of the bigDM package.**
+**IMPORTANT NOTE: At least the stable version of INLA 22.11.22 (or newest) must be installed for the correct use of the bigDM package.**
 
 
 # Basic Use
@@ -78,6 +82,10 @@ When using this package, please cite the following papers:
 ```
 news(package="bigDM")
 ```
+
+__Changes in version 0.4.2__ (2022 Jun 27)
+* small bugs fixed
+* new merging strategy
 
 __Changes in version 0.4.1__ (2022 Feb 01)
 * small bugs fixed
