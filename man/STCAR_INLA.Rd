@@ -22,7 +22,7 @@ STCAR_INLA(
   PCpriors = FALSE,
   seed = NULL,
   n.sample = 1000,
-  compute.fixed = FALSE,
+  compute.intercept = FALSE,
   compute.DIC = TRUE,
   save.models = FALSE,
   plan = "sequential",
@@ -33,17 +33,17 @@ STCAR_INLA(
 \arguments{
 \item{carto}{object of class \code{SpatialPolygonsDataFrame} or \code{sf}. This object must contain at least the variable with the identifiers of the spatial areal units specified in the argument \code{ID.area}.}
 
-\item{data}{object of class \code{data.frame} which must contain the target variables of interest specified in the arguments \code{ID.area}, \code{ID.year}, \code{O} and \code{E}.}
+\item{data}{object of class \code{data.frame} that must contain the target variables of interest specified in the arguments \code{ID.area}, \code{ID.year}, \code{O} and \code{E}.}
 
-\item{ID.area}{character; name of the variable which contains the IDs of spatial areal units. The values of this variable must match those given in the \code{carto} and \code{data} variable.}
+\item{ID.area}{character; name of the variable that contains the IDs of spatial areal units. The values of this variable must match those given in the \code{carto} and \code{data} variable.}
 
-\item{ID.year}{character; name of the variable which contains the IDs of time points.}
+\item{ID.year}{character; name of the variable that contains the IDs of time points.}
 
-\item{ID.group}{character; name of the variable which contains the IDs of the spatial partition (grouping variable). Only required if \code{model="partition"}.}
+\item{ID.group}{character; name of the variable that contains the IDs of the spatial partition (grouping variable). Only required if \code{model="partition"}.}
 
-\item{O}{character; name of the variable which contains the observed number of disease cases for each areal and time point.}
+\item{O}{character; name of the variable that contains the observed number of disease cases for each areal and time point.}
 
-\item{E}{character; name of the variable which contains either the expected number of disease cases or the population at risk for each areal unit and time point.}
+\item{E}{character; name of the variable that contains either the expected number of disease cases or the population at risk for each areal unit and time point.}
 
 \item{W}{optional argument with the binary adjacency matrix of the spatial areal units. If \code{NULL} (default), this object is computed from the \code{carto} argument (two areas are considered as neighbours if they share a common border).}
 
@@ -60,20 +60,21 @@ STCAR_INLA(
 \item{strategy}{one of either \code{"gaussian"}, \code{"simplified.laplace"} (default), \code{"laplace"} or \code{"adaptive"}, which specifies the approximation strategy considered in the \code{inla} function.}
 
 \item{PCpriors}{logical value (default \code{FALSE}); if \code{TRUE} then penalised complexity (PC) priors are used for the precision parameter of the spatial random effect.
-Only works if arguments \code{spatial="intrinsic"} or \code{spatial="BYM2"} are specified.}
+It only works if arguments \code{spatial="intrinsic"} or \code{spatial="BYM2"} are specified.}
 
 \item{seed}{numeric (default \code{NULL}); control the RNG of the \code{inla.qsample} function. See \code{help(inla.qsample)} for further information.}
 
 \item{n.sample}{numeric; number of samples to generate from the posterior marginal distribution of the risks. Default to 1000.}
 
-\item{compute.fixed}{logical value (default \code{FALSE}); if \code{TRUE} then the overall log-risk \eqn{\alpha} is computed. Only works if \code{k=0} argument (\emph{Disjoint model}) is specified.}
+\item{compute.intercept}{logical value (default \code{FALSE}); if \code{TRUE} then the overall log-risk \eqn{\alpha} is computed.
+It only works if \code{k=0} argument (\emph{Disjoint model}) is specified. CAUTION: This method might be very time consuming.}
 
 \item{compute.DIC}{logical value; if \code{TRUE} (default) then approximate values of the Deviance Information Criterion (DIC) and Watanabe-Akaike Information Criterion (WAIC) are computed.}
 
 \item{save.models}{logical value (default \code{FALSE}); if \code{TRUE} then a list with all the \code{inla} submodels is saved in '/temp/' folder, which can be used as input argument for the \code{\link{mergeINLA}} function.}
 
 \item{plan}{one of either \code{"sequential"} or \code{"cluster"}, which specifies the computation strategy used for model fitting using the 'future' package.
-If \code{plan="sequential"} (default) the models are fitted sequentially and in the current R session (local machine). If \code{plan="cluster"} the models are fitted in parallel on external R sessions (local machine) or distributed in remote compute nodes.}
+If \code{plan="sequential"} (default) the models are fitted sequentially and in the current R session (local machine). If \code{plan="cluster"} the models are fitted in parallel on external R sessions (local machine) or distributed in remote computing nodes.}
 
 \item{workers}{character or vector (default \code{NULL}) containing the identifications of the local or remote workers where the models are going to be processed. Only required if \code{plan="cluster"}.}
 
@@ -117,22 +118,22 @@ if(require("INLA", quietly=TRUE)){
   data("Data_LungCancer")
   str(Data_LungCancer)
 
-  ## Fit the Disjoint model with a BYM2 spatial random effect,
-  ## RW1 temporal random effect and Type I interaction random effect ##
+  ## Disjoint model with a BYM2 spatial random effect, RW1 temporal random effect and      ##
+  ## Type I interaction random effect using 4 local clusters to fit the models in parallel ##
   Disjoint <- STCAR_INLA(carto=Carto_SpainMUN, data=Data_LungCancer,
                          ID.area="ID", ID.year="year", O="obs", E="exp", ID.group="ID.prov",
                          spatial="BYM2", temporal="rw1", interaction="TypeI",
                          model="partition", k=0, strategy="gaussian",
-                         plan="cluster", workers=rep("localhost",2))
+                         plan="cluster", workers=rep("localhost",4))
   summary(Disjoint)
 
-  ## Fit the 1st order neighbourhood model with a BYM2 spatial random effect,
-  ## RW1 temporal random effect and Type I interaction random effect ##
+  ## 1st-order nb. model with a BYM2 spatial random effect, RW1 temporal random effect and ##
+  ## Type I interaction random effect using 4 local clusters to fit the models in parallel ##
   order1 <- STCAR_INLA(carto=Carto_SpainMUN, data=Data_LungCancer,
                        ID.area="ID", ID.year="year", O="obs", E="exp", ID.group="ID.prov",
                        spatial="BYM2", temporal="rw1", interaction="TypeI",
                        model="partition", k=1, strategy="gaussian",
-                       plan="cluster", workers=rep("localhost",2))
+                       plan="cluster", workers=rep("localhost",4))
   summary(order1)
 }
 }
