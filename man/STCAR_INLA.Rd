@@ -19,6 +19,7 @@ STCAR_INLA(
   model = "partition",
   k = 0,
   strategy = "simplified.laplace",
+  scale.model = NULL,
   PCpriors = FALSE,
   seed = NULL,
   n.sample = 1000,
@@ -27,7 +28,9 @@ STCAR_INLA(
   save.models = FALSE,
   plan = "sequential",
   workers = NULL,
-  merge.strategy = "original"
+  merge.strategy = "original",
+  inla.mode = "classic",
+  num.threads = NULL
 )
 }
 \arguments{
@@ -59,6 +62,9 @@ STCAR_INLA(
 
 \item{strategy}{one of either \code{"gaussian"}, \code{"simplified.laplace"} (default), \code{"laplace"} or \code{"adaptive"}, which specifies the approximation strategy considered in the \code{inla} function.}
 
+\item{scale.model}{logical value (default \code{NULL}); if \code{TRUE} the structure matrices of the model are scaled so their generalized variances are equal to 1.
+It only works if arguments \code{spatial="intrinsic"} or \code{spatial="BYM2"} are specified.}
+
 \item{PCpriors}{logical value (default \code{FALSE}); if \code{TRUE} then penalised complexity (PC) priors are used for the precision parameter of the spatial random effect.
 It only works if arguments \code{spatial="intrinsic"} or \code{spatial="BYM2"} are specified.}
 
@@ -79,6 +85,10 @@ If \code{plan="sequential"} (default) the models are fitted sequentially and in 
 \item{workers}{character or vector (default \code{NULL}) containing the identifications of the local or remote workers where the models are going to be processed. Only required if \code{plan="cluster"}.}
 
 \item{merge.strategy}{one of either \code{"mixture"} or \code{"original"} (default), which specifies the merging strategy to compute posterior marginal estimates of relative risks. See \code{\link{mergeINLA}} for further details.}
+
+\item{inla.mode}{one of either \code{"classic"} (default) or \code{"compact"}, which specifies the approximation method used by INLA. See \code{help(inla)} for further details.}
+
+\item{num.threads}{maximum number of threads the inla-program will use. See \code{help(inla)} for further details.}
 }
 \value{
 This function returns an object of class \code{inla}. See the \code{\link{mergeINLA}} function for details.
@@ -99,6 +109,8 @@ For both the Disjoint and k-order neighbour models, parallel or distributed comp
 
 Inference is conducted in a fully Bayesian setting using the integrated nested Laplace approximation (INLA; \insertCite{rue2009approximate;textual}{bigDM}) technique through the R-INLA package (\url{https://www.r-inla.org/}).
 For the scalable model proposals \insertCite{orozco2022}{bigDM}, approximate values of the Deviance Information Criterion (DIC) and Watanabe-Akaike Information Criterion (WAIC) can also be computed.
+
+The function allows also to use the new hybrid approximate method that combines the Laplace method with a low-rank Variational Bayes correction to the posterior mean \insertCite{vanNiekerk2023}{bigDM} by including the \code{inla.mode="compact"} argument.
 }
 \details{
 For a full model specification and further details see the vignettes accompanying this package.
@@ -147,4 +159,6 @@ if(require("INLA", quietly=TRUE)){
 \insertRef{orozco2020}{bigDM}
 
 \insertRef{orozco2022}{bigDM}
+
+\insertRef{vanNiekerk2023}{bigDM}
 }
