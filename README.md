@@ -43,7 +43,7 @@ Below, there is a list with a brief overview of all package functions:
 
 [Installing Rtools42 for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html)
 
-R version 4.2.0 and newer for Windows requires the new Rtools42 to build R packages with C/C++/Fortran code from source.
+R version 4.2.0 and newer for Windows requires the new Rtools43 to build R packages with C/C++/Fortran code from source.
 
 
 ## Install from CRAN
@@ -84,13 +84,17 @@ When using this package, please cite the following papers:
 
 [Orozco-Acosta, E., Adin, A., and Ugarte, M.D. (2023). Big problems in spatio-temporal disease mapping: methods and software. _Computer Methods and Programs in Biomedicine_, __231__, 107403.](https://doi.org/10.1016/j.cmpb.2023.107403)
 
-[Vicente, G., Adin, A., Goicoa, T., and Ugarte, M.D. (2022). High-dimensional order-free multivariate spatial disease mapping. _arXiv preprint_.](https://arxiv.org/abs/2210.14849)
+[Vicente, G., Adin, A., Goicoa, T., and Ugarte, M.D. (2023). High-dimensional order-free multivariate spatial disease mapping. _Statistics and Computing_, __33__, 104.](https://doi.org/10.1007/s11222-023-10263-x)
 
 # Updates
 
 ```
 news(package="bigDM")
 ```
+__Changes in version 0.5.2__ (2023 Jun 14)
+* changes in `mergeINLA()` function
+* 'X' argument included to `STCAR_INLA()` function
+
 __Changes in version 0.5.1__ (2023 Feb 14)
 * small bugs fixed
 * new `inla.mode` and `num.threads` arguments for `CAR_INLA()`, `STCAR_INLA()` and `MCAR_INLA()` functions
