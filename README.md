@@ -41,9 +41,9 @@ Below, there is a list with a brief overview of all package functions:
 
 # Installation
 
-[Installing Rtools42 for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html)
+[Installing Rtools43 for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html)
 
-R version 4.2.0 and newer for Windows requires the new Rtools43 to build R packages with C/C++/Fortran code from source.
+R version 4.3.0 and newer for Windows requires the new Rtools43 to build R packages with C/C++/Fortran code from source.
 
 
 ## Install from CRAN
@@ -91,6 +91,10 @@ When using this package, please cite the following papers:
 ```
 news(package="bigDM")
 ```
+__Changes in version 0.5.3__ (2023 Oct 17)
+* bugs fixed
+* faster implementation of `divide_carto()` function
+
 __Changes in version 0.5.2__ (2023 Jun 14)
 * changes in `mergeINLA()` function
 * 'X' argument included to `STCAR_INLA()` function

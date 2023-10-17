@@ -215,7 +215,7 @@ STCAR_INLA <- function(carto=NULL, data=NULL, ID.area=NULL, ID.year=NULL, ID.gro
         if(temporal=="rw1") dif <- 1
         if(temporal=="rw2") dif <- 2
         D <- diff(diag(T), differences=dif)
-        Rt <- as(t(D)%*%D, "TsparseMatrix")
+        Rt <- as(t(D)%*%D, "Matrix")
         # Rt <- inla.as.sparse(t(D)%*%D)
 
         ## Define hyperprior distributions ##
@@ -352,8 +352,8 @@ STCAR_INLA <- function(carto=NULL, data=NULL, ID.area=NULL, ID.year=NULL, ID.gro
 
                 cat(sprintf("+ Model %d of %d",d,D),"\n")
 
-                Rs <- as(Rs,"TsparseMatrix")
-                Rs.Leroux <- as(Rs.Leroux,"TsparseMatrix")
+                Rs <- as(Rs,"Matrix")
+                Rs.Leroux <- as(Rs.Leroux,"Matrix")
                 # Rs <- inla.as.sparse(Rs)
                 # Rs.Leroux <- inla.as.sparse(Rs.Leroux)
                 S <- nrow(Rs)
@@ -435,8 +435,8 @@ STCAR_INLA <- function(carto=NULL, data=NULL, ID.area=NULL, ID.year=NULL, ID.gro
                 cat("STEP 2: Fitting global model with INLA (this may take a while...)\n")
 
                 W <- aux$W
-                Rs <- as(Diagonal(S,colSums(W))-W, "TsparseMatrix")
-                Rs.Leroux <- as(Diagonal(S)-Rs, "TsparseMatrix")
+                Rs <- as(Diagonal(S,colSums(W))-W, "Matrix")
+                Rs.Leroux <- as(Diagonal(S)-Rs, "Matrix")
                 # Rs <- inla.as.sparse(Diagonal(S,colSums(W))-W)
                 # Rs.Leroux <- inla.as.sparse(Diagonal(S)-Rs)
 
@@ -468,7 +468,7 @@ STCAR_INLA <- function(carto=NULL, data=NULL, ID.area=NULL, ID.year=NULL, ID.gro
                 data.d <- lapply(carto.d, function(x) data[data[,ID.area] %in% unlist(sf::st_set_geometry(x[,ID.area],NULL)),])
 
                 fun <- function(){
-                        text <- sprintf("\n%d subdomains(s) have more than 50%% of areas with no observed cases during the whole study period.\nAre you sure that you want to continue fitting the model?\nPress any key to continue or [s] to stop: ",n.zero)
+                        text <- sprintf("\n%d subdomains(s) have more than 60%% of areas with no observed cases during the whole study period.\nAre you sure that you want to continue fitting the model?\nPress any key to continue or [s] to stop: ",n.zero)
                         answer <- readline(cat(red(text," ")))
                         if(answer=="s"){
                                 stop("Stopped by the user.", call.=FALSE)
@@ -478,7 +478,7 @@ STCAR_INLA <- function(carto=NULL, data=NULL, ID.area=NULL, ID.year=NULL, ID.gro
                 }
                 aux <- lapply(data.d, function(xx) aggregate(xx[,O], by=list(xx[,ID.area]), sum, na.rm=T)$x)
                 prop.zero <- unlist(lapply(aux, function(x) mean(x==0)))
-                n.zero <- sum(prop.zero>0.5)
+                n.zero <- sum(prop.zero>0.6)
                 if(n.zero>0) fun()
 
                 invisible(utils::capture.output(aux <- lapply(carto.d, function(x) connect_subgraphs(x, ID.area))))
