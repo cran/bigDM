@@ -2,8 +2,8 @@ Package: bigDM
 Type: Package
 Title: Scalable Bayesian Disease Mapping Models for High-Dimensional
         Data
-Version: 0.5.3
-Date: 2023-10-17
+Version: 0.5.4
+Date: 2024-05-30
 Authors@R: 
   c(person(given = "Aritz",
            family = "Adin",
@@ -36,12 +36,12 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 LazyDataCompression: xz
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2023-10-17 10:47:01 UTC; aritz.adin
+Packaged: 2024-05-30 09:04:23 UTC; aritz.adin
 Author: Aritz Adin [aut, cre] (<https://orcid.org/0000-0003-3232-6147>),
   Erick Orozco-Acosta [aut] (<https://orcid.org/0000-0002-1170-667X>),
   Maria Dolores Ugarte [aut] (<https://orcid.org/0000-0002-3505-8400>)
 Repository: CRAN
-Date/Publication: 2023-10-17 12:50:02 UTC
+Date/Publication: 2024-05-30 15:20:10 UTC
