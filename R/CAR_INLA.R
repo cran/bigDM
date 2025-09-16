@@ -50,8 +50,8 @@
 #' Only required if \code{model="partition"}.
 #' @param O character; name of the variable that contains the observed number of disease cases for each areal units.
 #' @param E character; name of the variable that contains either the expected number of disease cases or the population at risk for each areal unit.
-#' @param X a character vector containing the names of the covariates within the \code{carto} object to be included in the model as fixed effects,
-#' or a matrix object playing the role of the fixed effects design matrix. For the latter case, the row names must match with the IDs of the spatial units defined by the \code{ID.area} variable.
+#' @param X a character vector specifying the names of covariates within the \code{carto} object to include as fixed effects in the model, or a \code{data.frame} object where each column corresponds to a covariate for the model.
+#' For the latter case, the row names of the data frame must match with the spatial unit IDs defined by the \code{ID.area} variable.
 #' If \code{X=NULL} (default), only a global intercept is included in the model as fixed effect.
 #' @param confounding one of either \code{NULL}, \code{"restricted"} (restricted regression) or \code{"constraints"} (orthogonal constraints), which specifies the estimation method used to alleviate spatial confounding between fixed and random effects.
 #' If only an intercept is considered in the model (\code{X=NULL}), the default value \code{confounding=NULL} will be set.
@@ -176,13 +176,13 @@ CAR_INLA <- function(carto=NULL, ID.area=NULL, ID.group=NULL, O=NULL, E=NULL, X=
         ## Transform 'SpatialPolygonsDataFrame' object to 'sf' class
         carto <- sf::st_as_sf(carto)
 
-        ## Add the covariates defined in the X argument ##
+        ## Add the covariates defined in the X argument (scale numerical covariates) ##
         if(!is.null(X)){
-                if(is.matrix(X)){
+                if(is.data.frame(X)){
                         if(!isTRUE(all.equal(rownames(X),as.character(sf::st_set_geometry(carto, NULL)[,ID.area])))){
                                 stop(sprintf("row names of 'X' must match with the IDs of the spatial units defined by the '%s' variable",ID.area))
                         }else{
-                                if(is.null(colnames(X))) colnames(X) <- paste("X",seq(ncol(X)),sep="")
+                                #if(is.null(colnames(X))) colnames(X) <- paste("X",seq(ncol(X)),sep="")
                                 carto <- cbind(carto,X)
                                 X <- colnames(X)
                         }
@@ -190,7 +190,16 @@ CAR_INLA <- function(carto=NULL, ID.area=NULL, ID.group=NULL, O=NULL, E=NULL, X=
                 if(!all(X %in% names(carto))){
                         stop(sprintf("'%s' variable not found in carto object",X[!X %in% names(carto)]))
                 }else{
-                        carto[,X] <- scale(sf::st_set_geometry(carto, NULL)[,X])
+                        # carto[,X] <- scale(sf::st_set_geometry(carto, NULL)[,X])
+
+                        if(any(sapply(sf::st_set_geometry(carto, NULL)[,X,drop=FALSE], function(col) !is.factor(col) && !is.numeric(col)))) {
+                                stop("Invalid data type for covariates: only factor or numeric types are allowed")
+                        }else{
+                                X.numeric <- X[sapply(sf::st_set_geometry(carto, NULL)[,X,drop=FALSE], is.numeric)]
+                                if(length(X.numeric) > 0){
+                                        carto[,X.numeric] <- scale(sf::st_set_geometry(carto, NULL)[, X.numeric])
+                                }
+                        }
                 }
         }
         data <- sf::st_set_geometry(carto, NULL)
@@ -203,8 +212,8 @@ CAR_INLA <- function(carto=NULL, ID.area=NULL, ID.group=NULL, O=NULL, E=NULL, X=
         if(!E %in% colnames(data))
                 stop(sprintf("'%s' variable not found in carto object",E))
 
-        if(!all(order(data[,ID.area])==seq(1,nrow(data)))){
-                carto <- carto[order(data[,ID.area]),]
+        if(!all(order(unlist(data[,ID.area]))==seq(1,nrow(data)))){
+                carto <- carto[order(unlist(data[,ID.area])),]
                 data <- sf::st_set_geometry(carto, NULL)
 
                 order.data <- TRUE
@@ -247,9 +256,24 @@ CAR_INLA <- function(carto=NULL, ID.area=NULL, ID.group=NULL, O=NULL, E=NULL, X=
                 # Rs.Leroux <- inla.as.sparse(Rs.Leroux)
 
                 form <- "O ~ "
-                if(length(X)>0){
-                        form <- paste(form,paste0(X,collapse="+"),"+")
+
+                # if(length(X)>0){
+                #         form <- paste(form, paste0(X,collapse="+"),"+")
+                # }
+
+                # Check which covariates have a constant value
+                X.rm <- sapply(data.INLA[,X,drop=FALSE], function(col) all(col==0))
+                X.d <- X[!X.rm]
+
+                if(!is.null(X.d)){
+                        if(length(X.d)==1 & all(data.INLA[,X.d]==1)){
+                                intercept.rename <- TRUE
+                        }else{
+                                intercept.rename <- FALSE
+                                form <- paste(form, paste0(X.d,collapse="+"),"+")
+                        }
                 }
+
                 if(prior=="Leroux") {
                         if(!scale.model){
                                 form <- paste(form,"f(ID.area, model='generic1', Cmatrix=Rs.Leroux, constr=TRUE, hyper=list(prec=list(prior=sdunif),beta=list(prior=lunif, initial=0)))", sep="")
@@ -286,6 +310,14 @@ CAR_INLA <- function(carto=NULL, ID.area=NULL, ID.group=NULL, O=NULL, E=NULL, X=
                                control.compute=list(dic=TRUE, cpo=TRUE, waic=TRUE, config=TRUE, return.marginals.predictor=TRUE),
                                lincomb=lincomb,
                                control.inla=list(strategy=strategy), ...)
+
+                if(!is.null(X.d)){
+                        idx <- ifelse(intercept.rename,1,-1)
+
+                        rownames(models$summary.fixed)[idx] <- X.d
+                        names(models$marginals.fixed)[idx] <- X.d
+                        models$names.fixed[idx] <- X.d
+                }
 
                 return(models)
         }

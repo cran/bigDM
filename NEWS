@@ -1,3 +1,6 @@
+version 0.5.7
+- support dummy-coded clusters as fixed effects in spatial and spatio-temporal models
+
 version 0.5.6
 - small changes for compatibility with the upcoming release of 'future'
 - new 'scale.model' argument for CAR_INLA(), STCAR_INLA() and MCAR_INLA() functions

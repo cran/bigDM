@@ -41,9 +41,9 @@ Below, there is a list with a brief overview of all package functions:
 
 # Installation
 
-[Installing Rtools44 for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools44/rtools.html)
+[Installing Rtools45 for Windows](https://cran.r-project.org/bin/windows/Rtools/rtools45/rtools.html)
 
-R version 4.4.0 and newer for Windows requires the new Rtools44 to build R packages with C/C++/Fortran code from source.
+R version 4.5.0 and newer for Windows requires the new Rtools45 to build R packages with C/C++/Fortran code from source.
 
 
 ## Install from CRAN
@@ -92,6 +92,9 @@ When using this package, please cite the following papers:
 ```
 news(package="bigDM")
 ```
+__Changes in version 0.5.7__ (2025 Sep 16)
+* support dummy-coded clusters as fixed effects in spatial and spatio-temporal models
+
 __Changes in version 0.5.6__ (2025 Mar 25)
 * small changes for compatibility with the upcoming release of `future`
 * new 'scale.model' argument for `CAR_INLA()`, `STCAR_INLA()` and `MCAR_INLA()` functions

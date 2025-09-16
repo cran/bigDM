@@ -130,28 +130,59 @@ mergeINLA <- function(inla.models=list(), k=NULL, ID.area="Area", ID.year=NULL, 
                   ## Fixed effects ##
                   names.fixed <- unique(lapply(inla.models, function(x) x$names.fixed))
 
+                  # if(length(names.fixed)>1){
+                  #         stop("Different 'names.fixed' arguments for INLA models")
+                  # }else{
+                  #
+                  #         result$names.fixed <- unlist(names.fixed)
+                  #
+                  #         aux <- do.call(rbind,lapply(inla.models, function(x) x$summary.fixed))
+                  #         rownames(aux) <- paste(rep(unlist(names.fixed),D),rep(formatC(1:D, width=ceiling(log(D+1,10)), flag='0'),each=length(unlist(names.fixed))),sep=".")
+                  #         result$summary.fixed.partition <- aux[order(rownames(aux)),]
+                  #
+                  #         aux <- rlist::list.flatten(lapply(inla.models, function(x) x$marginals.fixed))
+                  #         names(aux) <- paste(rep(unlist(names.fixed),D),rep(formatC(1:D, width=ceiling(log(D+1,10)), flag='0'),each=length(unlist(names.fixed))),sep=".")
+                  #         result$marginals.fixed.partition <- aux[order(names(aux))]
+                  #
+                  #         ## CMC algorithm for the fixed effects ##
+                  #         fixed.CMC <- compute.CMC(marginals=result$marginals.fixed.partition, names=unlist(names.fixed))
+                  #         result$summary.fixed <- fixed.CMC$summary.CMC
+                  #         result$marginals.fixed <- fixed.CMC$marginals.CMC
+                  #
+                  #         result$summary.fixed <- result$summary.fixed[-union(which(rownames(result$summary.fixed)=="(Intercept)"),grep("^I",rownames(result$summary.fixed))),]
+                  #         result$marginals.fixed[union(which(names(result$marginals.fixed)=="(Intercept)"),grep("^I",names(result$marginals.fixed)))] <- NULL
+                  # }
+
                   if(length(names.fixed)>1){
-                          stop("Different 'names.fixed' arguments for INLA models")
-                  }else{
-
-                          result$names.fixed <- unlist(names.fixed)
-
-                          aux <- do.call(rbind,lapply(inla.models, function(x) x$summary.fixed))
-                          rownames(aux) <- paste(rep(unlist(names.fixed),D),rep(formatC(1:D, width=ceiling(log(D+1,10)), flag='0'),each=length(unlist(names.fixed))),sep=".")
-                          result$summary.fixed.partition <- aux[order(rownames(aux)),]
-
-                          aux <- rlist::list.flatten(lapply(inla.models, function(x) x$marginals.fixed))
-                          names(aux) <- paste(rep(unlist(names.fixed),D),rep(formatC(1:D, width=ceiling(log(D+1,10)), flag='0'),each=length(unlist(names.fixed))),sep=".")
-                          result$marginals.fixed.partition <- aux[order(names(aux))]
-
-                          ## CMC algorithm for the fixed effects ##
-                          fixed.CMC <- compute.CMC(marginals=result$marginals.fixed.partition, names=unlist(names.fixed))
-                          result$summary.fixed <- fixed.CMC$summary.CMC
-                          result$marginals.fixed <- fixed.CMC$marginals.CMC
-
-                          result$summary.fixed <- result$summary.fixed[-union(which(rownames(result$summary.fixed)=="(Intercept)"),grep("^I",rownames(result$summary.fixed))),]
-                          result$marginals.fixed[union(which(names(result$marginals.fixed)=="(Intercept)"),grep("^I",names(result$marginals.fixed)))] <- NULL
+                          warning("The 'names.fixed' arguments differ across INLA models; only common fixed effects will be used when merging models.")
+                          names.fixed <- list(names.fixed=unique(unlist(names.fixed)))
                   }
+
+                  result$names.fixed <- unlist(names.fixed)
+
+                  aux <- do.call(rbind,lapply(inla.models, function(x) x$summary.fixed))
+                  rownames(aux) <- unlist(mapply(
+                          function(names.fixed.d, d) {
+                                  paste(names.fixed.d, formatC(d, width=ceiling(log(length(inla.models)+1,10)), flag='0'), sep=".")
+                          }, names.fixed.d=lapply(inla.models, function(x) x$names.fixed), d=1:length(inla.models)
+                  ))
+                  result$summary.fixed.partition <- aux[order(rownames(aux)),]
+
+                  aux <- rlist::list.flatten(lapply(inla.models, function(x) x$marginals.fixed))
+                  names(aux) <- unlist(mapply(
+                          function(names.fixed.d, d) {
+                                  paste(names.fixed.d, formatC(d, width=ceiling(log(length(inla.models)+1,10)), flag='0'), sep=".")
+                          }, names.fixed.d=lapply(inla.models, function(x) x$names.fixed), d=1:length(inla.models)
+                  ))
+                  result$marginals.fixed.partition <- aux[order(names(aux))]
+
+                  ## CMC algorithm for the fixed effects ##
+                  fixed.CMC <- compute.CMC(marginals=result$marginals.fixed.partition, names=unlist(names.fixed))
+                  result$summary.fixed <- fixed.CMC$summary.CMC
+                  result$marginals.fixed <- fixed.CMC$marginals.CMC
+
+                  result$summary.fixed <- result$summary.fixed[-union(which(rownames(result$summary.fixed)=="(Intercept)"),grep("^I",rownames(result$summary.fixed))),]
+                  result$marginals.fixed[union(which(names(result$marginals.fixed)=="(Intercept)"),grep("^I",names(result$marginals.fixed)))] <- NULL
 
 
                   ## lincomb / lincomb.derived ##
@@ -675,6 +706,8 @@ compute.transform <- function(x){
 
 compute.CMC <- function(marginals,names){
 
+  names <- sort(names)
+
   marginals.CMC <- vector("list",length(names))
   names(marginals.CMC) <- names
 
@@ -682,15 +715,19 @@ compute.CMC <- function(marginals,names){
     pos <- grep(i,names(marginals))
     pos <- pos[!unlist(lapply(marginals[pos], function(x) all(is.na(x))))]
 
-    w <- 1/unlist(lapply(marginals[pos], function(x) INLA::inla.emarginal(function(y) y^2,x)-INLA::inla.emarginal(function(y) y,x)^2))
-    w <- w/sum(w)
+    if(length(pos)>1){
+            w <- 1/unlist(lapply(marginals[pos], function(x) INLA::inla.emarginal(function(y) y^2,x)-INLA::inla.emarginal(function(y) y,x)^2))
+            w <- w/sum(w)
 
-    marginals.sample <- lapply(marginals[pos], function(x) INLA::inla.rmarginal(10000,x))
-    marginals.density <- density(c(do.call(cbind,marginals.sample)%*%w), n=75, bw="SJ")
-    marginals.matrix <- cbind(x=marginals.density$x, y=marginals.density$y)
-    dimnames(marginals.matrix) <- list(NULL, c("x","y"))
+            marginals.sample <- lapply(marginals[pos], function(x) INLA::inla.rmarginal(10000,x))
+            marginals.density <- density(c(do.call(cbind,marginals.sample)%*%w), n=75, bw="SJ")
+            marginals.matrix <- cbind(x=marginals.density$x, y=marginals.density$y)
+            dimnames(marginals.matrix) <- list(NULL, c("x","y"))
 
-    marginals.CMC[[i]] <- marginals.matrix
+            marginals.CMC[[i]] <- marginals.matrix
+    }else{
+            marginals.CMC[[i]] <- marginals[[pos]]
+    }
   }
 
   summary.CMC <- do.call(rbind,lapply(marginals.CMC, function(x) compute.summary(x,cdf=NULL)))

@@ -39,7 +39,7 @@
 #' @param ID.group character; name of the variable that contains the IDs of the spatial partition (grouping variable). Only required if \code{model="partition"}.
 #' @param O character; name of the variable that contains the observed number of disease cases for each areal and time point.
 #' @param E character; name of the variable that contains either the expected number of disease cases or the population at risk for each areal unit and time point.
-#' @param X a character vector containing the names of the covariates within the \code{data} object to be included in the model as fixed effects, or a matrix object playing the role of the fixed effects design matrix.
+#' @param X a character vector containing the names of the covariates within the \code{data} object to be included in the model as fixed effects, or a \code{data.frame} object where each column corresponds to a covariate for the model.
 #' If \code{X=NULL} (default), only a global intercept is included in the model as fixed effect.
 #' @param W optional argument with the binary adjacency matrix of the spatial areal units. If \code{NULL} (default), this object is computed from the \code{carto} argument (two areas are considered as neighbours if they share a common border).
 #' @param spatial one of either \code{"Leroux"} (default), \code{"intrinsic"}, \code{"BYM"} or \code{"BYM2"}, which specifies the prior distribution considered for the spatial random effect.
@@ -164,17 +164,26 @@ STCAR_INLA <- function(carto=NULL, data=NULL, ID.area=NULL, ID.year=NULL, ID.gro
         ## Transform 'SpatialPolygonsDataFrame' object to 'sf' class
         carto <- sf::st_as_sf(carto)
 
-        ## Add the covariates defined in the X argument ##
+        ## Add the covariates defined in the X argument (scale numerical covariates) ##
         if(!is.null(X)){
-                if(is.matrix(X)){
-                        if(is.null(colnames(X))) colnames(X) <- paste("X",seq(ncol(X)),sep="")
+                if(is.data.frame(X)){
+                        #if(is.null(colnames(X))) colnames(X) <- paste("X",seq(ncol(X)),sep="")
                         data <- cbind(data,X)
                         X <- colnames(X)
                 }
                 if(!all(X %in% colnames(data))){
-                        stop(sprintf("'%s' variable not found in data object",X[!X %in% colnames(data)]))
+                        stop(sprintf("'%s' variable not found in data object", X[!X %in% colnames(data)]))
                 }else{
-                        data[,X] <- scale(data[,X])
+                        # data[,X] <- scale(data[,X])
+
+                        if(any(sapply(data[,X], function(col) !is.factor(col) && !is.numeric(col)))){
+                                stop("invalid data type for covariates: only factor or numeric types are allowed")
+                        }else{
+                                X.numeric <- X[sapply(data[X], is.numeric)]
+                                if(length(X.numeric) > 0){
+                                        data[,X.numeric] <- scale(data[,X.numeric])
+                                }
+                        }
                 }
         }
 
@@ -190,7 +199,7 @@ STCAR_INLA <- function(carto=NULL, data=NULL, ID.area=NULL, ID.year=NULL, ID.gro
         if(!E %in% colnames(data))
                 stop(sprintf("'%s' variable not found in carto object",E))
 
-        data.old <- data
+        data.old <- as.data.frame(data)
         carto <- carto[order(unlist(sf::st_set_geometry(carto, NULL)[,ID.area])),]
         data <- merge(data,carto[,c(ID.area,ID.group)])
         data$geometry <- NULL
@@ -294,8 +303,21 @@ STCAR_INLA <- function(carto=NULL, data=NULL, ID.area=NULL, ID.year=NULL, ID.gro
 
                 form <- "O ~ "
 
-                if(length(X)>0){
-                        form <- paste(form,paste0(X,collapse="+"),"+")
+                # if(length(X)>0){
+                #         form <- paste(form, paste0(X,collapse="+"),"+")
+                # }
+
+                # Check which covariates have a constant value
+                X.rm <- sapply(data.INLA[,X,drop=FALSE], function(col) all(col==0))
+                X.d <- X[!X.rm]
+
+                if(!is.null(X.d)){
+                        if(length(X.d)==1 & all(data.INLA[,X.d]==1)){
+                                intercept.rename <- TRUE
+                        }else{
+                                intercept.rename <- FALSE
+                                form <- paste(form, paste0(X.d,collapse="+"),"+")
+                        }
                 }
 
                 if(spatial=="Leroux") {
@@ -371,6 +393,14 @@ STCAR_INLA <- function(carto=NULL, data=NULL, ID.area=NULL, ID.year=NULL, ID.gro
                                control.predictor=list(compute=TRUE, link=1, cdf=c(log(1))),
                                control.compute=list(dic=TRUE, cpo=TRUE, waic=TRUE, config=TRUE, return.marginals.predictor=TRUE),
                                control.inla=list(strategy=strategy), ...)
+
+                if(!is.null(X.d)){
+                        idx <- ifelse(intercept.rename,1,-1)
+
+                        rownames(models$summary.fixed)[idx] <- X.d
+                        names(models$marginals.fixed)[idx] <- X.d
+                        models$names.fixed[idx] <- X.d
+                }
 
                 return(models)
         }
